@@ -45,6 +45,9 @@ class Environment(DirectRLEnv):
         fetch observations (joint pos, joint vel)
         """
         # get joint localization
+        # this includes positions and velocities
+        # these are necessary so the robot knows where its joints are and where they are going
+        # for example, the joint positions in the ground contact phase are different than the swing phase, and the policy must know how to adjust torque accordingly
         joint_pos = self.robot.data.joint_pos[:]
         joint_vel = self.robot.data.joint_vel[:]
         # concatenate
@@ -60,12 +63,16 @@ class Environment(DirectRLEnv):
         # compute velocity term
         robot_vel = self.robot.data.root_lin_vel_w[:]
         # compute cosine similarity
+        # this rewards the robot root (the body) for traveling in the direction of the velocity
         vel_sim_score = (self.target_direction * robot_vel).sum(dim=1) / (torch.linalg.norm(robot_vel, dim=1), torch.linalg.norm(self.target_direction, dim=1))
         
         # fetch mean action rate
+        # smooths the output to prevent unsafe jitter
         action_rate = (self.actions - self.past_actions).abs().mean(dim=1)
         
         # fetch mean joint accel
+        # reward slow, smooth movements
+        # fast movements are generally less effective
         joint_vel = self.robot.data.joint_vel[:]
         
         rewards = {
@@ -88,8 +95,10 @@ class Environment(DirectRLEnv):
         fetch terminations/truncations
         """
         # get truncations
+        # truncated environments are where the maximum time duration has been exceeded
         time_out = self.episode_length_buf >= self.max_episode_length - 1
         # get terminations
+        # when the root of the robot (the body) is below the specified region, 
         term = self.robot.data.root_lin_vel_w[:, 2] <= self.cfg.min_termination_height
         
         return term, time_out
@@ -105,9 +114,10 @@ class Environment(DirectRLEnv):
             env_ids = self.robot._ALL_INDICIES
             
         # reset robot state
+        # when each environment is reset (i.e. they are truncated/terminated), we want the robot joints to return to their defined native state
         default_joint_pos = self.robot.data.default_joint_pos.clone()
         default_joint_vel = self.robot.data.default_joint_vel.clone()
-        
+        # write to the robot buffers
         self.robot.write_joint_state_to_sim(default_joint_pos, default_joint_vel)
         self.robot.write_data_to_sim()
         

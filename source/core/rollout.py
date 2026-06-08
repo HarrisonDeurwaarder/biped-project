@@ -19,6 +19,7 @@ class Rollout(Dataset):
         self.device = device
         # Define collectables
         # save transitions, including action probabilities for training
+        # all of these must be used in the refinement phase
         self.obs: torch.Tensor = initial_obs.unsqueeze(0).to(device=device)
         self.actions: torch.Tensor = torch.empty(0, device=device,)
         self.means: torch.Tensor = torch.empty(0, device=device,)
