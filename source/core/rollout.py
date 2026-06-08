@@ -18,11 +18,13 @@ class Rollout(Dataset):
         super().__init__()
         self.device = device
         # Define collectables
+        # save transitions, including action probabilities for training
         self.obs: torch.Tensor = initial_obs.unsqueeze(0).to(device=device)
         self.actions: torch.Tensor = torch.empty(0, device=device,)
         self.means: torch.Tensor = torch.empty(0, device=device,)
         self.stds: torch.Tensor = torch.empty(0, device=device,)
         self.rewards: torch.Tensor = torch.empty(0, device=device,)
+        # predicted values by critic
         self.value_outs: torch.Tensor = initial_value_out.unsqueeze(0).to(device=device)
         self.dones: torch.Tensor = torch.empty(0, device=device,)
         
