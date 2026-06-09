@@ -5,6 +5,7 @@ from torch.utils.data.dataset import Dataset
 from utils.config import config
 
 
+# the rollout is used to collect a "dataset" of transitions (state, action, rewards, dones in the most raw form) so we can later iteratively refine the policy. this is akin to training a regular model where the rollout is our "dataset"
 class Rollout(Dataset):
     """
     Rollout for transition storage

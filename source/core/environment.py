@@ -4,6 +4,11 @@ from isaaclab.envs import DirectRLEnv
 from source.configs.environment import EnvironmentCfg
 
 
+# the "environment" is what the policy acts in. fundementally, the environment must return a state and reward given an action
+# we use rl to train a policy based on all of the rewards
+# the optimal policy can find the best long-term set of actions for a state
+# we must include observation getters, done flag getters, reward getters, and reset logic for it to be a valid environment
+# the "step" (one state, action, reward) is dispersed throughout methods 2&3, but most of the logic is handled internally by isaaclab
 class Environment(DirectRLEnv):
     def __init__(self):
         super().__init__(EnvironmentCfg(), None)
